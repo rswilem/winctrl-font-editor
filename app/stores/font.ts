@@ -99,11 +99,6 @@ export class CharacterInfo {
 
         startPos += delta;
         skippedBytes += delta;
-        if (delta < remainingBytesToSkip) {
-          console.warn(
-            `For character ${this.character}, could not skip all ${remainingBytesToSkip} remaining bytes, only skipped ${delta} = ${skippedBytes} total`
-          );
-        }
       }
 
       // Replace bytes in this line with modified data
@@ -139,9 +134,7 @@ export class CharacterInfo {
     const bitInByte = 7 - (bitIndex % 8);
     const byteIndex = rowStart + byteOffset;
 
-    // Add bounds checking to ensure we don't go beyond the character data
     if (byteIndex >= this.data.length) {
-      console.warn(`Pixel out of bounds: y=${y}, byteIndex=${byteIndex}, dataLength=${this.data.length}`);
       return;
     }
 
