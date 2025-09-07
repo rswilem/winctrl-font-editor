@@ -15,7 +15,7 @@ export enum FontFileType {
   CHeaderClipboard = 'c-header-clipboard'
 }
 
-export class CharacterInfo {
+export class CharacterGlyph {
   public static readonly DATA_LENGTH = 91;
   public static readonly BYTES_PER_ROW = 3;
   public static readonly CHARACTER_WIDTH = 24;
@@ -42,20 +42,20 @@ export class CharacterInfo {
     const charBuffer = this.data;
     let bitmap: boolean[][] = [];
 
-    const expectedHeight = Math.floor(CharacterInfo.DATA_LENGTH / CharacterInfo.BYTES_PER_ROW);
+    const expectedHeight = Math.floor(CharacterGlyph.DATA_LENGTH / CharacterGlyph.BYTES_PER_ROW);
 
-    for (let i = 0, row = 0; i < this.data.length && row < expectedHeight; i += CharacterInfo.BYTES_PER_ROW, row++) {
-      if (i + CharacterInfo.BYTES_PER_ROW > this.data.length) {
+    for (let i = 0, row = 0; i < this.data.length && row < expectedHeight; i += CharacterGlyph.BYTES_PER_ROW, row++) {
+      if (i + CharacterGlyph.BYTES_PER_ROW > this.data.length) {
         break;
       }
 
-      const data = charBuffer.subarray(i, i + CharacterInfo.BYTES_PER_ROW);
+      const data = charBuffer.subarray(i, i + CharacterGlyph.BYTES_PER_ROW);
 
       const byteHex = Array.from(data)
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
       const byteValue = parseInt(byteHex, 16);
-      const bits = byteValue.toString(2).padStart(CharacterInfo.BYTES_PER_ROW * 8, '0');
+      const bits = byteValue.toString(2).padStart(CharacterGlyph.BYTES_PER_ROW * 8, '0');
 
       const rowBits = bits.split('').map((bit) => (bit === '1' ? true : false));
       bitmap.push(rowBits);
@@ -92,8 +92,8 @@ export class CharacterInfo {
       }
 
       let startPos = lineOrigin.startCharacterIndex;
-      if (skippedBytes < CharacterInfo.SKIP_CHARACTER_BYTES && lineOrigin.startCharacterIndex >= 0) {
-        const remainingBytesToSkip = CharacterInfo.SKIP_CHARACTER_BYTES - skippedBytes;
+      if (skippedBytes < CharacterGlyph.SKIP_CHARACTER_BYTES && lineOrigin.startCharacterIndex >= 0) {
+        const remainingBytesToSkip = CharacterGlyph.SKIP_CHARACTER_BYTES - skippedBytes;
         const availableBytesInLine = lineOrigin.endCharacterIndex - lineOrigin.startCharacterIndex + 1;
         const delta = Math.min(remainingBytesToSkip, availableBytesInLine);
 
@@ -128,7 +128,7 @@ export class CharacterInfo {
 
   setPixel(x: number, y: number, value: boolean) {
     const fontStore = useFontStore();
-    const rowStart = y * CharacterInfo.BYTES_PER_ROW;
+    const rowStart = y * CharacterGlyph.BYTES_PER_ROW;
     const bitIndex = x;
     const byteOffset = Math.floor(bitIndex / 8);
     const bitInByte = 7 - (bitIndex % 8);
@@ -139,7 +139,10 @@ export class CharacterInfo {
     }
 
     let byte = this.data[byteIndex];
-    if (byte === undefined) return;
+    if (byte === undefined) {
+      return;
+    }
+
     if (value) {
       byte = byte | (1 << bitInByte);
     } else {
@@ -153,9 +156,9 @@ export class CharacterInfo {
 }
 
 export const useFontStore = defineStore('font', () => {
-  const previewScale = ref(1);
-  const characters = ref<CharacterInfo[]>([]);
-  const selectedCharacter = ref<CharacterInfo | null>(null);
+  const previewScale = ref(3);
+  const characters = ref<CharacterGlyph[]>([]);
+  const selectedCharacter = ref<CharacterGlyph | null>(null);
   const dataVersion = ref(0);
 
   watch(
@@ -187,18 +190,22 @@ export const useFontStore = defineStore('font', () => {
     let currentCharacterIndex = 0;
     let currentCharacterLineOrigin: LineOrigin[] = [];
     let currentCharacterData = Buffer.alloc(0);
-    let didReadHeader = false;
+    let bytesToSkip = 0;
+
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex] ?? '';
       const hex = Buffer.from(line.trim().split(/\s+/).join(''), 'hex');
 
-      if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x2a && hex[8] === 0x06) {
+      // if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x2a) {
+      //   //bytesToSkip = 29; // Account for the extended header
+      // }
+      if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x02) {
         // Reset for new read, this is seen when switching from LARGE to small font
-        didReadHeader = false;
         currentCharacterData = Buffer.alloc(0);
+        currentCharacterLineOrigin = [];
       } else if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x12) {
-        didReadHeader = false;
-        currentCharacterData = Buffer.concat([currentCharacterData, hex.subarray(4, 5)]);
+        //bytesToSkip = 29; // Account for the extended header
+        currentCharacterData = Buffer.concat([currentCharacterData, hex.subarray(4, 5)]); // Take the 5th byte as is (seems to be part of the character data)
         currentCharacterLineOrigin.push({
           line: Buffer.from(hex),
           lineIndex,
@@ -210,13 +217,55 @@ export const useFontStore = defineStore('font', () => {
 
       if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x3c) {
         let cursor = 4;
-        if (!didReadHeader) {
-          didReadHeader = true;
+        let validCharacterData = Buffer.alloc(0);
 
-          cursor += 29;
+        let i = cursor;
+        while (i < hex.length) {
+          if (bytesToSkip > 0) {
+            bytesToSkip--;
+            i++;
+            continue;
+          }
+
+          if (
+            hex.length - i >= 4 &&
+            hex[i] === 0x32 &&
+            hex[i + 1] === 0xbb &&
+            hex[i + 2] === 0x00 &&
+            hex[i + 3] === 0x00
+          ) {
+            const controlSequenceLength = 17;
+            const skipExtraPos = i + controlSequenceLength - 4;
+
+            if (skipExtraPos < hex.length) {
+              const skipExtra = hex[skipExtraPos] ?? 0;
+              const totalSkip = controlSequenceLength + skipExtra;
+
+              if (i + totalSkip <= hex.length) {
+                // Skip the entire control sequence + extra bytes within this line
+                i += totalSkip;
+                continue;
+              } else {
+                // Control sequence + extra extends beyond this line
+                const remainingInLine = hex.length - i;
+                bytesToSkip = totalSkip - remainingInLine;
+                i = hex.length; // Skip to end of current line
+                continue;
+              }
+            } else {
+              // Control sequence spans across lines, can't read skipExtra
+              const remainingInLine = hex.length - i;
+              bytesToSkip = controlSequenceLength - remainingInLine;
+              i = hex.length; // Skip to end of current line
+              continue;
+            }
+          }
+
+          validCharacterData = Buffer.concat([validCharacterData, Buffer.from([hex[i] ?? 0])]);
+          i++;
         }
 
-        currentCharacterData = Buffer.concat([currentCharacterData, hex.subarray(cursor)]);
+        currentCharacterData = Buffer.concat([currentCharacterData, validCharacterData]);
 
         currentCharacterLineOrigin.push({
           line: Buffer.from(hex),
@@ -231,26 +280,26 @@ export const useFontStore = defineStore('font', () => {
         ]).readUInt16LE(0);
 
         const character = String.fromCodePoint(characterCodePoint);
-        if (currentCharacterData.length >= CharacterInfo.DATA_LENGTH) {
+        if (currentCharacterData.length >= CharacterGlyph.DATA_LENGTH) {
           const bytesUsedInCurrentLine = Math.min(
-            CharacterInfo.DATA_LENGTH - (currentCharacterData.length - hex.subarray(cursor).length),
+            CharacterGlyph.DATA_LENGTH - (currentCharacterData.length - hex.subarray(cursor).length),
             hex.length - cursor
           );
           currentCharacterLineOrigin[currentCharacterLineOrigin.length - 1]!.endCharacterIndex =
             cursor + bytesUsedInCurrentLine - 1;
 
           characters.value.push(
-            new CharacterInfo(
+            new CharacterGlyph(
               character,
               characterCodePoint,
-              currentCharacterData.subarray(CharacterInfo.SKIP_CHARACTER_BYTES, CharacterInfo.DATA_LENGTH),
+              currentCharacterData.subarray(CharacterGlyph.SKIP_CHARACTER_BYTES, CharacterGlyph.DATA_LENGTH),
               currentCharacterLineOrigin,
               characters.value.length
             )
           );
 
           cursor = cursor + bytesUsedInCurrentLine;
-          currentCharacterData = currentCharacterData.subarray(CharacterInfo.DATA_LENGTH);
+          currentCharacterData = currentCharacterData.subarray(CharacterGlyph.DATA_LENGTH);
 
           currentCharacterLineOrigin =
             currentCharacterData.length > 0
@@ -265,6 +314,7 @@ export const useFontStore = defineStore('font', () => {
               : [];
 
           currentCharacterIndex++;
+          bytesToSkip = 0; // Reset for next character
         }
       } else {
         currentCharacterLineOrigin.push({
@@ -279,10 +329,10 @@ export const useFontStore = defineStore('font', () => {
     // Handle any remaining character data after the loop
     if (currentCharacterData.length > 0) {
       characters.value.push(
-        new CharacterInfo(
+        new CharacterGlyph(
           String.fromCharCode(0),
           0x00,
-          currentCharacterData.subarray(CharacterInfo.SKIP_CHARACTER_BYTES, CharacterInfo.DATA_LENGTH),
+          currentCharacterData.subarray(CharacterGlyph.SKIP_CHARACTER_BYTES, CharacterGlyph.DATA_LENGTH),
           currentCharacterLineOrigin,
           characters.value.length
         )

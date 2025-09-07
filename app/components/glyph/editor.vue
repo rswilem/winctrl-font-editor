@@ -18,7 +18,7 @@ const hasDrawnDuringDrag = ref(false);
 let lastDrawnPixel: { x: number; y: number } | null = null;
 
 function getGlyphScaleAndOffset(canvas: HTMLCanvasElement) {
-  const glyphWidth = CharacterInfo.CHARACTER_WIDTH;
+  const glyphWidth = CharacterGlyph.CHARACTER_WIDTH;
   const glyphHeight = height.value;
   const scale = Math.min(canvas.width / glyphWidth, canvas.height / glyphHeight);
   const offsetX = (canvas.width - glyphWidth * scale) / 2;
@@ -28,14 +28,16 @@ function getGlyphScaleAndOffset(canvas: HTMLCanvasElement) {
 
 function togglePixelAtEvent(e: MouseEvent) {
   const canvas = canvasRef.value;
-  if (!canvas) return;
+  if (!canvas) {
+    return;
+  }
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
   const { scale, offsetX, offsetY } = getGlyphScaleAndOffset(canvas);
   const glyphX = Math.floor((x - offsetX) / scale);
   const glyphY = Math.floor((y - offsetY) / scale);
-  if (glyphX >= 0 && glyphX < CharacterInfo.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
+  if (glyphX >= 0 && glyphX < CharacterGlyph.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
     const char = fontStore.selectedCharacter;
     if (char) {
       const currentValue = char.bitmap[glyphY]?.[glyphX] ?? false;
@@ -57,7 +59,7 @@ function toggleAllPixels() {
 
   for (let y = 0; y < height.value; y++) {
     const row = bitmap[y] || [];
-    for (let x = 0; x < CharacterInfo.CHARACTER_WIDTH; x++) {
+    for (let x = 0; x < CharacterGlyph.CHARACTER_WIDTH; x++) {
       if (row[x]) {
         hasOnPixel = true;
         break;
@@ -70,7 +72,7 @@ function toggleAllPixels() {
   const newValue = !hasOnPixel;
 
   for (let y = 0; y < height.value; y++) {
-    for (let x = 0; x < CharacterInfo.CHARACTER_WIDTH; x++) {
+    for (let x = 0; x < CharacterGlyph.CHARACTER_WIDTH; x++) {
       char.setPixel(x, y, newValue);
     }
   }
@@ -100,7 +102,7 @@ function handleCanvasMouseDown(e: MouseEvent) {
   const glyphX = Math.floor((x - offsetX) / scale);
   const glyphY = Math.floor((y - offsetY) / scale);
 
-  if (glyphX >= 0 && glyphX < CharacterInfo.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
+  if (glyphX >= 0 && glyphX < CharacterGlyph.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
     const char = fontStore.selectedCharacter;
     if (char) {
       // Determine draw mode based on current pixel state
@@ -131,7 +133,7 @@ function drawAtEvent(e: MouseEvent) {
   const glyphX = Math.floor((x - offsetX) / scale);
   const glyphY = Math.floor((y - offsetY) / scale);
 
-  if (glyphX >= 0 && glyphX < CharacterInfo.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
+  if (glyphX >= 0 && glyphX < CharacterGlyph.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
     const char = fontStore.selectedCharacter;
     if (char) {
       if (lastDrawnPixel && (lastDrawnPixel.x !== glyphX || lastDrawnPixel.y !== glyphY)) {
@@ -157,7 +159,7 @@ function handleCanvasMouseMove(e: MouseEvent) {
   const glyphY = Math.floor((y - offsetY) / scale);
 
   // Only set hover pixel if within valid glyph bounds
-  if (glyphX >= 0 && glyphX < CharacterInfo.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
+  if (glyphX >= 0 && glyphX < CharacterGlyph.CHARACTER_WIDTH && glyphY >= 0 && glyphY < height.value) {
     hoverPixel.value = { x: glyphX, y: glyphY };
     if (isDrawing.value) {
       drawAtEvent(e);
@@ -216,7 +218,7 @@ function drawCharacter() {
 
   ctx.strokeStyle = 'gray';
   ctx.lineWidth = 1;
-  ctx.strokeRect(offsetX, offsetY, CharacterInfo.CHARACTER_WIDTH * scale, height.value * scale);
+  ctx.strokeRect(offsetX, offsetY, CharacterGlyph.CHARACTER_WIDTH * scale, height.value * scale);
 
   if (showGrid.value) {
     // Draw horizontal grid lines
@@ -226,12 +228,12 @@ function drawCharacter() {
       const lineY = offsetY + y * scale;
       ctx.beginPath();
       ctx.moveTo(offsetX, lineY);
-      ctx.lineTo(offsetX + CharacterInfo.CHARACTER_WIDTH * scale, lineY);
+      ctx.lineTo(offsetX + CharacterGlyph.CHARACTER_WIDTH * scale, lineY);
       ctx.stroke();
     }
 
     // Draw vertical grid lines
-    for (let x = 1; x < CharacterInfo.CHARACTER_WIDTH; x++) {
+    for (let x = 1; x < CharacterGlyph.CHARACTER_WIDTH; x++) {
       const lineX = offsetX + x * scale;
       ctx.beginPath();
       ctx.moveTo(lineX, offsetY);
@@ -245,7 +247,7 @@ function drawCharacter() {
 
   for (let y = 0; y < height.value; y++) {
     const row = bitmap[y] || [];
-    for (let x = 0; x < CharacterInfo.CHARACTER_WIDTH; x++) {
+    for (let x = 0; x < CharacterGlyph.CHARACTER_WIDTH; x++) {
       if (row[x]) {
         ctx.fillRect(offsetX + x * scale, offsetY + y * scale, scale, scale);
       }
@@ -255,7 +257,7 @@ function drawCharacter() {
   if (
     hoverPixel.value &&
     hoverPixel.value.x >= 0 &&
-    hoverPixel.value.x < CharacterInfo.CHARACTER_WIDTH &&
+    hoverPixel.value.x < CharacterGlyph.CHARACTER_WIDTH &&
     hoverPixel.value.y >= 0 &&
     hoverPixel.value.y < height.value
   ) {
@@ -316,7 +318,7 @@ onMounted(() => {
       <div class="h-[70vh] w-full">
         <canvas
           ref="canvasRef"
-          class="block h-full w-full"
+          class="block h-full w-full cursor-crosshair touch-none"
           @click="handleCanvasClick"
           @mousedown="handleCanvasMouseDown"
           @mouseup="handleCanvasMouseUp"
@@ -326,11 +328,11 @@ onMounted(() => {
         />
       </div>
       <div class="flex h-full grow flex-col">
-        <GlyphOverviewItem hide-label :info="fontStore.selectedCharacter" :scale="6" />
-        <GlyphOverviewItem hide-label :info="fontStore.selectedCharacter" :scale="5" />
-        <GlyphOverviewItem hide-label :info="fontStore.selectedCharacter" :scale="4" />
-        <GlyphOverviewItem hide-label :info="fontStore.selectedCharacter" :scale="3" />
-        <GlyphOverviewItem hide-label :info="fontStore.selectedCharacter" :scale="2" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="6" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="5" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="4" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="3" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="2" />
       </div>
     </div>
 
