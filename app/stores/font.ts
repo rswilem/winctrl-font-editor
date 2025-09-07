@@ -156,10 +156,11 @@ export class CharacterGlyph {
 }
 
 export const useFontStore = defineStore('font', () => {
-  const previewScale = ref(3);
+  const filename = ref<string>('');
+  const previewScale = ref<number>(3);
   const characters = ref<CharacterGlyph[]>([]);
   const selectedCharacter = ref<CharacterGlyph | null>(null);
-  const dataVersion = ref(0);
+  const dataVersion = ref<number>(0);
 
   watch(
     () => previewScale.value,
@@ -178,11 +179,12 @@ export const useFontStore = defineStore('font', () => {
     }
   });
 
-  async function processFontFile(lines: string[]): Promise<boolean> {
+  async function processFontFile(lines: string[], fontFilename: string): Promise<boolean> {
     if (!lines.length) {
       return false;
     }
 
+    filename.value = fontFilename;
     characters.value = [];
     selectedCharacter.value = null;
     dataVersion.value = 0;
@@ -197,14 +199,12 @@ export const useFontStore = defineStore('font', () => {
       const hex = Buffer.from(line.trim().split(/\s+/).join(''), 'hex');
 
       // if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x2a) {
-      //   //bytesToSkip = 29; // Account for the extended header
       // }
       if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x02) {
         // Reset for new read, this is seen when switching from LARGE to small font
         currentCharacterData = Buffer.alloc(0);
         currentCharacterLineOrigin = [];
       } else if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x12) {
-        //bytesToSkip = 29; // Account for the extended header
         currentCharacterData = Buffer.concat([currentCharacterData, hex.subarray(4, 5)]); // Take the 5th byte as is (seems to be part of the character data)
         currentCharacterLineOrigin.push({
           line: Buffer.from(hex),
@@ -218,6 +218,8 @@ export const useFontStore = defineStore('font', () => {
       if (hex[0] === 0xf0 && hex[1] === 0x00 && hex[3] === 0x3c) {
         let cursor = 4;
         let validCharacterData = Buffer.alloc(0);
+        let validDataStartPos = -1;
+        let validDataEndPos = -1;
 
         let i = cursor;
         while (i < hex.length) {
@@ -261,6 +263,11 @@ export const useFontStore = defineStore('font', () => {
             }
           }
 
+          // This is valid character data
+          if (validDataStartPos === -1) {
+            validDataStartPos = i; // Mark start of valid data in this line
+          }
+          validDataEndPos = i; // Update end position
           validCharacterData = Buffer.concat([validCharacterData, Buffer.from([hex[i] ?? 0])]);
           i++;
         }
@@ -270,8 +277,8 @@ export const useFontStore = defineStore('font', () => {
         currentCharacterLineOrigin.push({
           line: Buffer.from(hex),
           lineIndex,
-          startCharacterIndex: cursor,
-          endCharacterIndex: hex.length - 1
+          startCharacterIndex: validDataStartPos >= 0 ? validDataStartPos : cursor,
+          endCharacterIndex: validDataEndPos >= 0 ? validDataEndPos : cursor
         });
 
         const characterCodePoint = Buffer.from([
@@ -465,6 +472,7 @@ export const useFontStore = defineStore('font', () => {
   }
 
   return {
+    filename,
     processFontFile,
     downloadFontFile,
     selectedCharacter,
