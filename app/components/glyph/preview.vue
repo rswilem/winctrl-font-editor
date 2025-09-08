@@ -41,6 +41,7 @@ watch(
   [
     () => props.glyph,
     () => fontStore.previewScale,
+    () => fontStore.filename,
     () => (fontStore.selectedCharacter === props.glyph ? fontStore.dataVersion : 0)
   ],
   () => {
@@ -55,12 +56,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <canvas
-    ref="canvasRef"
-    :width="CharacterGlyph.CHARACTER_WIDTH * 1"
-    :height="(CharacterGlyph.DATA_LENGTH / CharacterGlyph.BYTES_PER_ROW) * 1"
-    :class="{
-      'bg-black': !props.noBackground
-    }"
-  />
+  <div>
+    <canvas
+      ref="canvasRef"
+      :width="CharacterGlyph.CHARACTER_WIDTH * 1"
+      :height="(CharacterGlyph.DATA_LENGTH / CharacterGlyph.BYTES_PER_ROW) * 1"
+      :class="{
+        'bg-black': !props.noBackground
+      }"
+    />
+  </div>
 </template>

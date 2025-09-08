@@ -1,7 +1,11 @@
 <script setup lang="ts">
+defineProps<{
+  primary?: boolean;
+}>();
+
 const fontStore = useFontStore();
 
-function handleFontUpload(event: Event) {
+function handleHexUpload(event: Event) {
   const input = event.target as HTMLInputElement;
   if (!input.files || input.files.length === 0) {
     return;
@@ -39,15 +43,13 @@ function handleFontUpload(event: Event) {
 </script>
 
 <template>
-  <div class="flex min-h-screen w-screen flex-col bg-black">
-    <Topbar />
-    <GlyphOverview v-if="fontStore.filename" />
-    <div class="flex h-full w-full grow items-center justify-center bg-black text-white" v-else>
-      <div class="flex flex-col items-center">
-        <span class="mb-4 text-lg">No font loaded</span>
-        <LoadFontButton primary />
-        <NewFontButton class="mt-4" />
-      </div>
-    </div>
+  <div class="relative">
+    <input
+      id="hex-upload"
+      type="file"
+      @change="handleHexUpload"
+      class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+    />
+    <Button as="label" for="hex-upload" :primary="primary">Load file</Button>
   </div>
 </template>

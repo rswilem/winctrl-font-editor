@@ -28,6 +28,7 @@ function selectCharacter() {
       class="flex w-full items-center justify-between bg-gray-900 px-4 py-1 text-center text-xs text-white"
       :class="{
         '!bg-blue-500': fontStore.selectedCharacter === glyph,
+        '!bg-yellow-900 italic': glyph?.modified,
         '!bg-red-700': locked
       }"
     >

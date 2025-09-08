@@ -30,7 +30,7 @@ const affectedCount = computed(() => {
 });
 
 watch(
-  [() => fontStore.selectedCharacter, () => fontStore.dataVersion],
+  [() => fontStore.selectedCharacter, () => fontStore.dataVersion, () => fontStore.filename],
   () => {
     if (!fontStore.selectedCharacter) {
       editedDate.value = null;

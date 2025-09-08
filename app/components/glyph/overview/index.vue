@@ -11,7 +11,10 @@ const locked = computed(() => (fontStore.selectedCharacter?.codepoint ?? 0) === 
     </div>
 
     <div class="flex h-full w-full grow flex-col items-center justify-center bg-black">
-      <div v-if="locked" class="m-16 flex w-full max-w-2xl flex-col gap-4 rounded-lg bg-gray-300 p-8 text-black">
+      <div
+        v-if="fontStore.selectedCharacter && locked"
+        class="m-16 flex w-full max-w-2xl flex-col gap-4 rounded-lg bg-gray-300 p-8 text-black"
+      >
         <span class="text-lg font-bold">Character locked</span>
         <span
           >This character is locked and cannot be edited. These characters occur at the end of the font chain and
@@ -20,7 +23,7 @@ const locked = computed(() => (fontStore.selectedCharacter?.codepoint ?? 0) === 
         <span class="font-mono text-sm">Character index: {{ fontStore.selectedCharacter?.index }}</span>
         <span class="font-mono text-sm">Codepoint: 0x{{ fontStore.selectedCharacter?.codepoint }}</span>
       </div>
-      <GlyphEditor v-if="!locked" />
+      <GlyphEditor v-if="fontStore.selectedCharacter && !locked" />
     </div>
   </div>
 </template>

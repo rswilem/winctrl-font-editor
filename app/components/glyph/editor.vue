@@ -15,7 +15,46 @@ const isDragging = ref(false);
 const drawMode = ref<boolean>(true); // true = drawing on, false = drawing off
 const hasDrawnDuringDrag = ref(false);
 
+const copiedToClipboard = ref(false);
+const clipboardData = ref<Buffer | null>(null);
+
 let lastDrawnPixel: { x: number; y: number } | null = null;
+
+function copyCharacterData() {
+  const char = fontStore.selectedCharacter;
+  if (char) {
+    clipboardData.value = Buffer.from(char.data);
+    copiedToClipboard.value = true;
+    setTimeout(() => {
+      copiedToClipboard.value = false;
+    }, 1000);
+  }
+}
+
+function pasteCharacterData() {
+  const char = fontStore.selectedCharacter;
+  if (char && clipboardData.value) {
+    // Replace the character data with clipboard data
+    char.data = Buffer.from(clipboardData.value);
+    char.modified = true;
+    fontStore.dataVersion++;
+    drawCharacter();
+  }
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  // Check for Ctrl+C (or Cmd+C on Mac)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+    e.preventDefault();
+    copyCharacterData();
+  }
+
+  // Check for Ctrl+V (or Cmd+V on Mac)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+    e.preventDefault();
+    pasteCharacterData();
+  }
+}
 
 function getGlyphScaleAndOffset(canvas: HTMLCanvasElement) {
   const glyphWidth = CharacterGlyph.CHARACTER_WIDTH;
@@ -276,7 +315,7 @@ function undoAllChanges() {
 }
 
 watch(
-  [() => fontStore.selectedCharacter, () => fontStore.dataVersion],
+  [() => fontStore.selectedCharacter, () => fontStore.dataVersion, () => fontStore.filename],
   () => {
     drawCharacter();
   },
@@ -308,14 +347,22 @@ onMounted(() => {
     }
   }
 
+  // Add keyboard event listener for copy/paste
+  document.addEventListener('keydown', handleKeydown);
+
   drawCharacter();
+});
+
+onUnmounted(() => {
+  // Clean up event listener
+  document.removeEventListener('keydown', handleKeydown);
 });
 </script>
 
 <template>
-  <div class="flex h-full grow flex-col bg-black">
-    <div v-if="fontStore.selectedCharacter" class="flex">
-      <div class="h-[70vh] w-full">
+  <div class="flex h-full w-full flex-col bg-black">
+    <div v-if="fontStore.selectedCharacter" class="flex h-[70vh]">
+      <div class="w-full">
         <canvas
           ref="canvasRef"
           class="block h-full w-full cursor-crosshair touch-none"
@@ -327,12 +374,14 @@ onMounted(() => {
           @contextmenu.prevent
         />
       </div>
-      <div class="flex h-full grow flex-col">
+      <div class="flex h-full flex-col items-center">
         <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="6" />
         <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="5" />
         <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="4" />
         <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="3" />
         <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="2" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="1" />
+        <GlyphPreview :glyph="fontStore.selectedCharacter" :scale="0.5" />
       </div>
     </div>
 
@@ -356,11 +405,16 @@ onMounted(() => {
 
         <Button @click="toggleAllPixels()">Toggle all pixels</Button>
         <Button @click="undoAllChanges()">Undo all changes</Button>
+        <Button @click="copyCharacterData()">
+          <span v-if="!copiedToClipboard">Copy to clipboard</span>
+          <span v-if="copiedToClipboard">Copied!</span>
+        </Button>
       </div>
 
       <div class="flex flex-col gap-4">
         <GlyphOverviewSentence :text="previewText" :scale="2" :spacing="previewSpacing" />
         <GlyphOverviewSentence :text="previewText" :scale="1" :spacing="previewSpacing" />
+        <GlyphOverviewSentence :text="previewText" :scale="0.5" :spacing="previewSpacing" />
       </div>
     </div>
   </div>
