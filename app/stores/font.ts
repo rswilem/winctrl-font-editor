@@ -274,6 +274,10 @@ export const useFontStore = defineStore('font', () => {
 
         currentCharacterData = Buffer.concat([currentCharacterData, validCharacterData]);
 
+        if (validDataStartPos < 0 && validDataEndPos < 0) {
+          cursor = -1;
+        }
+
         currentCharacterLineOrigin.push({
           line: Buffer.from(hex),
           lineIndex,
