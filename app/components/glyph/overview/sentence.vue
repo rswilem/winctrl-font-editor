@@ -3,12 +3,17 @@ const props = defineProps<{
   text: string;
   scale?: number;
   spacing?: number;
+  smallFont?: boolean;
 }>();
 
 const fontStore = useFontStore();
 
 function findCharacter(char: string): CharacterGlyph | null {
-  return fontStore.characters.find((c) => String.fromCharCode(c.codepoint) === char) ?? null;
+  return (
+    fontStore.characters.find(
+      (c) => String.fromCharCode(c.codepoint) === char && c.index > (props.smallFont ? 110 : 0)
+    ) ?? null
+  );
 }
 </script>
 

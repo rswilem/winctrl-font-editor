@@ -5,6 +5,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const previewText = ref('INIT REF');
 const previewSpacing = ref(1);
 const showGrid = ref(true);
+const showSmallFont = ref(false);
 const height = computed(() => {
   const bitmapHeight = fontStore.selectedCharacter?.bitmap?.length ?? 0;
   return bitmapHeight;
@@ -392,6 +393,17 @@ onUnmounted(() => {
           <label for="showGrid">Show grid</label>
         </div>
 
+        <div class="flex items-center gap-2">
+          <input
+            v-model="showSmallFont"
+            type="checkbox"
+            name="showSmallFont"
+            id="showSmallFont"
+            @change="drawCharacter()"
+          />
+          <label for="showGrid">Smaller font</label>
+        </div>
+
         <input
           type="text"
           v-model="previewText"
@@ -412,9 +424,9 @@ onUnmounted(() => {
       </div>
 
       <div class="flex flex-col gap-4">
-        <GlyphOverviewSentence :text="previewText" :scale="2" :spacing="previewSpacing" />
-        <GlyphOverviewSentence :text="previewText" :scale="1" :spacing="previewSpacing" />
-        <GlyphOverviewSentence :text="previewText" :scale="0.5" :spacing="previewSpacing" />
+        <GlyphOverviewSentence :text="previewText" :scale="2" :spacing="previewSpacing" :small-font="showSmallFont" />
+        <GlyphOverviewSentence :text="previewText" :scale="1" :spacing="previewSpacing" :small-font="showSmallFont" />
+        <GlyphOverviewSentence :text="previewText" :scale="0.5" :spacing="previewSpacing" :small-font="showSmallFont" />
       </div>
     </div>
   </div>
