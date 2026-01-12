@@ -1,6 +1,7 @@
 <script setup lang="ts">
-const pluginName = 'Winwing / WINCTRL X-Plane plugin';
-const pluginUrl = 'https://github.com/rswilem/winwing-xplane-plugin#winwing-plugin-for-x-plane';
+const config = useRuntimeConfig();
+const pluginName = config.public.pluginName;
+const pluginUrl = config.public.pluginUrl;
 </script>
 <template>
   <div class="flex h-full w-full grow flex-col items-center justify-between bg-black p-32 text-white">

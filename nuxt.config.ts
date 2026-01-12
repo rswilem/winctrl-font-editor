@@ -32,6 +32,12 @@ export default defineNuxtConfig({
   imports: {
     dirs: ['stores']
   },
+  runtimeConfig: {
+    public: {
+      pluginName: 'Winwing / WINCTRL X-Plane plugin',
+      pluginUrl: 'https://github.com/rswilem/winwing-xplane-plugin#winwing-plugin-for-x-plane'
+    }
+  },
   vite: {
     plugins: [tailwindcss()]
   }
