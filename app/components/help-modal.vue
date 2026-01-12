@@ -13,13 +13,13 @@ const emit = defineEmits<{
   >
     <div class="h-5/6 w-full max-w-4xl overflow-y-auto rounded-2xl bg-white p-8 text-sm">
       <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-3xl font-bold text-red-500">Font Editor</h1>
+        <h1 class="text-primary-500 text-3xl font-bold">Font Editor</h1>
         <button @click="emit('close')" class="text-2xl font-bold text-gray-500 hover:text-gray-700">&times;</button>
       </div>
 
       <!-- Getting Started -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Getting Started</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Getting Started</h2>
         <div class="space-y-3 text-gray-700">
           <p><strong>1. Load a Font:</strong> Click the "Load font file" button to upload a font. You can use:</p>
           <ul class="ml-4 list-inside list-disc space-y-1">
@@ -36,7 +36,7 @@ const emit = defineEmits<{
 
       <!-- Interface Overview -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Interface Overview</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Interface Overview</h2>
         <div class="space-y-4 text-gray-700">
           <div>
             <h3 class="font-semibold">Left Panel - Character Selection</h3>
@@ -64,7 +64,7 @@ const emit = defineEmits<{
 
       <!-- Editing Characters -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Editing Characters</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Editing Characters</h2>
         <div class="space-y-3 text-gray-700">
           <p>
             <strong>Pixel Editing:</strong> Click on individual pixels in the grid to toggle them on (filled) or off
@@ -83,7 +83,7 @@ const emit = defineEmits<{
 
       <!-- Font Variants -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Font Variants</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Font Variants</h2>
         <div class="space-y-3 text-gray-700">
           <p>Your font contains <strong>two variants</strong> of each character:</p>
           <ul class="ml-2 list-inside list-disc space-y-2">
@@ -105,7 +105,7 @@ const emit = defineEmits<{
 
       <!-- Exporting Your Font -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Exporting Your Font</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Exporting Your Font</h2>
         <div class="space-y-3 text-gray-700">
           <p>
             When you're satisfied with your edits, click <strong>"Save font file"</strong> to download your custom font
@@ -116,7 +116,7 @@ const emit = defineEmits<{
 
       <!-- Installation -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Installation in X-Plane</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Installation in X-Plane</h2>
         <div class="space-y-3 text-gray-700">
           <p><strong>1. Locate the Fonts Folder:</strong></p>
           <p class="ml-4 rounded bg-gray-100 p-3 font-mono">X-Plane root directory/Resources/plugins/winwing/fonts/</p>
@@ -136,21 +136,21 @@ const emit = defineEmits<{
 
       <!-- Font Options -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Font Options in X-Plane</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Font Options in the X-Plane plugin</h2>
         <div class="space-y-3 text-gray-700">
-          <div class="border-l-4 border-blue-500 pl-4">
+          <div class="border-primary-500 border-l-4 pl-4">
             <p>
               <strong>Managed by plugin (default):</strong> Uses the plugin's built-in fonts, automatically adjusted to
               match the currently selected aircraft.
             </p>
           </div>
-          <div class="border-l-4 border-blue-500 pl-4">
+          <div class="border-primary-500 border-l-4 pl-4">
             <p>
               <strong>No custom font:</strong> Reverts to the default font included with the WinWing FMC hardware. Note:
               Requires device reconnect to take effect.
             </p>
           </div>
-          <div class="border-l-4 border-blue-500 pl-4">
+          <div class="border-primary-500 border-l-4 pl-4">
             <p>
               <strong>Custom Fonts:</strong> Any <code class="rounded bg-gray-100 px-2 py-1">.xpwwf</code> file you
               place in the fonts directory will appear here.
@@ -161,7 +161,7 @@ const emit = defineEmits<{
 
       <!-- Tips & Tricks -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Tips & Tricks</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Tips & Tricks</h2>
         <div class="space-y-3 text-gray-700">
           <ul class="list-inside list-disc space-y-2">
             <li>Use the preview scale to get a better view while editing fine details</li>
@@ -175,7 +175,7 @@ const emit = defineEmits<{
 
       <!-- Technical Info -->
       <section class="mb-8">
-        <h2 class="mb-4 text-xl font-bold text-red-700">Technical Information</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Technical Information</h2>
         <div class="space-y-3 text-gray-700">
           <p>
             Each character is stored as a bitmap of
@@ -188,7 +188,7 @@ const emit = defineEmits<{
 
       <!-- Support -->
       <section>
-        <h2 class="mb-4 text-xl font-bold text-red-700">Need Help?</h2>
+        <h2 class="text-primary-700 mb-4 text-xl font-bold">Need Help?</h2>
         <div class="space-y-3 text-gray-700">
           <p>If you encounter issues or have questions:</p>
           <ul class="list-inside list-disc space-y-1">
