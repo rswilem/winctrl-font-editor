@@ -7,6 +7,27 @@ export default defineNuxtConfig({
   ssr: false,
   css: ['~/assets/css/main.css'],
 
+  app: {
+    head: {
+      htmlAttrs: { lang: 'en' },
+
+      bodyAttrs: { class: 'font-sans antialiased text-neutral-900 tracking-tight' },
+
+      title: 'Font Editor for the Winwing / WINCTRL X-Plane plugin',
+
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover' },
+        { property: 'og:title', content: 'Font Editor for the Winwing / WINCTRL X-Plane plugin' },
+        {
+          property: 'og:description',
+          content:
+            'Edit and create custom fonts for the Winwing / WINCTRL X-Plane plugin with this easy-to-use web-based font editor.'
+        }
+      ],
+      link: [{ rel: 'icon', type: 'image/x-icon' as any, href: '/favicon.ico' }]
+    }
+  },
+
   modules: ['@pinia/nuxt'],
   imports: {
     dirs: ['stores']

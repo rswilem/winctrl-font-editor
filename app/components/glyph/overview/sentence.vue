@@ -11,7 +11,9 @@ const fontStore = useFontStore();
 function findCharacter(char: string): CharacterGlyph | null {
   return (
     fontStore.characters.find(
-      (c) => String.fromCharCode(c.codepoint) === char && c.index > (props.smallFont ? 110 : 0)
+      (c) =>
+        String.fromCharCode(c.codepoint) === char &&
+        c.index > (props.smallFont ? CharacterGlyph.SMALL_FONT_START_INDEX : 0)
     ) ?? null
   );
 }

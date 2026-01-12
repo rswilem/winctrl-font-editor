@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const fontStore = useFontStore();
 const characterModal = ref(false);
+const helpModal = ref(false);
 </script>
 
 <template>
@@ -26,16 +27,27 @@ const characterModal = ref(false);
       <span class="w-6 text-right font-bold">{{ fontStore.previewScale }}x</span>
     </div>
 
-    <div v-if="fontStore.selectedCharacter">
-      <Button @click="characterModal = true">Show character data</Button>
-      <GlyphModal v-if="characterModal" @close="characterModal = false" />
-    </div>
+    <DevOnly>
+      <div v-if="fontStore.selectedCharacter">
+        <Button @click="characterModal = true">Show character data</Button>
+        <GlyphModal v-if="characterModal" @close="characterModal = false" />
+      </div>
+    </DevOnly>
 
     <div class="grow"></div>
-    <div v-if="fontStore.filename" class="flex items-center gap-2">
-      <Button @click="fontStore.downloadFontFile(FontFileType.Binary)">Download binary</Button>
-      <Button @click="fontStore.downloadFontFile(FontFileType.CHeader)">Download .h</Button>
-      <Button @click="fontStore.downloadFontFile(FontFileType.CHeaderClipboard)">Copy .h</Button>
+
+    <div>
+      <Button @click="helpModal = true">Help</Button>
+      <HelpModal v-if="helpModal" @close="helpModal = false" />
+    </div>
+
+    <div v-if="fontStore.filename" class="flex items-center gap-1">
+      <Button @click="fontStore.downloadFontFile(FontFileType.Binary)">Save font file</Button>
+      <DevOnly>
+        <Button @click="fontStore.downloadFontFile(FontFileType.BinaryText)">Download HEX text</Button>
+        <Button @click="fontStore.downloadFontFile(FontFileType.CHeader)">Download .h</Button>
+        <Button @click="fontStore.downloadFontFile(FontFileType.CHeaderClipboard)">Copy .h</Button>
+      </DevOnly>
     </div>
   </div>
 </template>

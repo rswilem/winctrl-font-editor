@@ -19,7 +19,7 @@ function selectCharacter() {
   <div
     class="relative flex h-full w-full flex-col items-center border border-gray-500 bg-black hover:border-blue-500"
     :class="{
-      'border !border-blue-500': fontStore.selectedCharacter === glyph,
+      'border border-blue-500!': fontStore.selectedCharacter === glyph,
       'border-red-700': locked
     }"
     @click="selectCharacter()"
@@ -27,9 +27,9 @@ function selectCharacter() {
     <span
       class="flex w-full items-center justify-between bg-gray-900 px-4 py-1 text-center text-xs text-white"
       :class="{
-        '!bg-blue-500': fontStore.selectedCharacter === glyph,
-        '!bg-yellow-900 italic': glyph?.modified,
-        '!bg-red-700': locked
+        'bg-blue-500!': fontStore.selectedCharacter === glyph,
+        'bg-yellow-900! italic': glyph?.modified,
+        'bg-red-700!': locked
       }"
     >
       <span class="font-bold">#{{ glyph.index }}</span>

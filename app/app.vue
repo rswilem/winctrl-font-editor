@@ -1,53 +1,19 @@
 <script setup lang="ts">
 const fontStore = useFontStore();
 
-function handleFontUpload(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (!input.files || input.files.length === 0) {
-    return;
+window.onbeforeunload = function () {
+  if (!fontStore.filename?.length) {
+    return undefined;
   }
 
-  const file = input.files[0];
-  if (!file) {
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const data = e.target?.result ?? null;
-    if (!data) {
-      return;
-    }
-
-    let lines: string[] = [];
-    if (data instanceof ArrayBuffer) {
-      try {
-        const text = new TextDecoder('utf-8').decode(new Uint8Array(data));
-        lines = text.split(/\r?\n/);
-      } catch (e) {
-        console.error('Failed to decode ArrayBuffer:', e);
-        return false;
-      }
-    } else if (typeof data === 'string') {
-      lines = data.split(/\r?\n/);
-    }
-
-    fontStore.processFontFile(lines, file.name);
-  };
-  reader.readAsArrayBuffer(file);
-}
+  return 'All unsaved data will be lost if you leave the page, are you sure?';
+};
 </script>
 
 <template>
   <div class="flex min-h-screen w-screen flex-col bg-black">
     <Topbar />
     <GlyphOverview v-if="fontStore.filename" />
-    <div class="flex h-full w-full grow items-center justify-center bg-black text-white" v-else>
-      <div class="flex flex-col items-center">
-        <span class="mb-4 text-lg">No font loaded</span>
-        <LoadFontButton primary />
-        <NewFontButton class="mt-4" />
-      </div>
-    </div>
+    <WelcomeView v-else />
   </div>
 </template>

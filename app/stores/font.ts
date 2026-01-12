@@ -1,5 +1,13 @@
 import { Buffer } from 'buffer';
 import { defineStore } from 'pinia';
+import opentype, { Font } from 'opentype.js';
+
+declare global {
+  interface Window {
+    Buffer: typeof Buffer;
+  }
+}
+
 window.Buffer = Buffer;
 
 interface LineOrigin {
@@ -11,6 +19,7 @@ interface LineOrigin {
 
 export enum FontFileType {
   Binary = 'binary',
+  BinaryText = 'binary-text',
   CHeader = 'c-header',
   CHeaderClipboard = 'c-header-clipboard'
 }
@@ -20,6 +29,7 @@ export class CharacterGlyph {
   public static readonly BYTES_PER_ROW = 3;
   public static readonly CHARACTER_WIDTH = 24;
   public static readonly SKIP_CHARACTER_BYTES = 4; // Skip first two bytes (character code), and two more... not sure
+  public static readonly SMALL_FONT_START_INDEX = 110;
 
   public character: string;
   public codepoint: number;
@@ -153,6 +163,11 @@ export class CharacterGlyph {
 
     this.modified = true;
   }
+
+  commitOriginalData() {
+    this.originalData = Buffer.from(this.data);
+    this.modified = false;
+  }
 }
 
 export const useFontStore = defineStore('font', () => {
@@ -179,12 +194,40 @@ export const useFontStore = defineStore('font', () => {
     }
   });
 
-  async function processFontFile(lines: string[], fontFilename: string): Promise<boolean> {
+  async function processFontFile(data: ArrayBuffer | string | null, fontFilename: string): Promise<boolean> {
+    if (!data) {
+      return false;
+    }
+
+    let lines: string[] = [];
+    if (data instanceof ArrayBuffer) {
+      let index = 0;
+      while (index < data.byteLength) {
+        const length = new Uint8Array(data, index, 1)?.[0] ?? 0;
+        index += 1;
+
+        if (length === 0 || index + length > data.byteLength) {
+          break;
+        }
+
+        const chunk = new Uint8Array(data, index, length);
+        index += length;
+
+        let line = '';
+        for (let j = 0; j < chunk.length; j++) {
+          line += chunk[j]!.toString(16).padStart(2, '0').toUpperCase();
+        }
+        lines.push(line);
+      }
+    } else if (typeof data === 'string') {
+      lines = data.split(/\r?\n/);
+    }
+
     if (!lines.length) {
       return false;
     }
 
-    filename.value = fontFilename;
+    filename.value = fontFilename.replace(/\.[^/.]+$/, '');
     characters.value = [];
     selectedCharacter.value = null;
     dataVersion.value = 0;
@@ -303,14 +346,16 @@ export const useFontStore = defineStore('font', () => {
             new CharacterGlyph(
               character,
               characterCodePoint,
-              currentCharacterData.subarray(CharacterGlyph.SKIP_CHARACTER_BYTES, CharacterGlyph.DATA_LENGTH),
+              Buffer.from(
+                currentCharacterData.subarray(CharacterGlyph.SKIP_CHARACTER_BYTES, CharacterGlyph.DATA_LENGTH)
+              ),
               currentCharacterLineOrigin,
               characters.value.length
             )
           );
 
           cursor = cursor + bytesUsedInCurrentLine;
-          currentCharacterData = currentCharacterData.subarray(CharacterGlyph.DATA_LENGTH);
+          currentCharacterData = Buffer.from(currentCharacterData.subarray(CharacterGlyph.DATA_LENGTH));
 
           currentCharacterLineOrigin =
             currentCharacterData.length > 0
@@ -343,7 +388,7 @@ export const useFontStore = defineStore('font', () => {
         new CharacterGlyph(
           String.fromCharCode(0),
           0x00,
-          currentCharacterData.subarray(CharacterGlyph.SKIP_CHARACTER_BYTES, CharacterGlyph.DATA_LENGTH),
+          Buffer.from(currentCharacterData.subarray(CharacterGlyph.SKIP_CHARACTER_BYTES, CharacterGlyph.DATA_LENGTH)),
           currentCharacterLineOrigin,
           characters.value.length
         )
@@ -357,6 +402,8 @@ export const useFontStore = defineStore('font', () => {
     if (!characters.value.length) {
       return;
     }
+
+    const downloadName = filename.value || 'modified_font';
 
     const modifiedLinesMap = new Map<number, Buffer>();
     for (const character of characters.value) {
@@ -394,14 +441,6 @@ export const useFontStore = defineStore('font', () => {
       }
     }
 
-    const outputLines: string[] = [];
-
-    if (type === FontFileType.CHeader) {
-      outputLines.push(
-        '#ifndef FONT_AIRBUS_VARIANT_1_H\n#define FONT_AIRBUS_VARIANT_1_H\n#include <vector>\n\nconst std::vector<std::vector<unsigned char>> fmcFontAirbusVariant1 = {'
-      );
-    }
-
     const allLineIndices = new Set<number>();
     for (const character of characters.value) {
       for (const lineOrigin of character.origin) {
@@ -412,6 +451,56 @@ export const useFontStore = defineStore('font', () => {
     }
 
     const sortedLineIndices = Array.from(allLineIndices).sort((a, b) => a - b);
+
+    // For binary files, collect buffers directly
+    if (type === FontFileType.Binary) {
+      const buffers: Buffer[] = [];
+      for (const lineIndex of sortedLineIndices) {
+        let lineBuffer = modifiedLinesMap.get(lineIndex);
+
+        if (!lineBuffer) {
+          for (const character of characters.value) {
+            const originalLineOrigin = character.origin.find((orig) => orig.lineIndex === lineIndex);
+            if (originalLineOrigin) {
+              lineBuffer = originalLineOrigin.line;
+              break;
+            }
+          }
+        }
+
+        if (lineBuffer) {
+          // prepend each line with the buffer length
+          const lengthBuffer = Buffer.alloc(1);
+          lengthBuffer.writeUInt8(lineBuffer.length, 0);
+          buffers.push(lengthBuffer);
+
+          buffers.push(lineBuffer);
+        }
+      }
+
+      const binaryData = Buffer.concat(buffers);
+      const blob = new Blob([binaryData], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${downloadName}.xpwwf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    // For text-based formats
+    const outputLines: string[] = [];
+
+    if (type === FontFileType.CHeader) {
+      outputLines.push(
+        '#ifndef FONT_AIRBUS_VARIANT_1_H\n#define FONT_AIRBUS_VARIANT_1_H\n#include <vector>\n\nconst std::vector<std::vector<unsigned char>> fmcFontAirbusVariant1 = {'
+      );
+    }
+
     for (const lineIndex of sortedLineIndices) {
       let lineBuffer = modifiedLinesMap.get(lineIndex);
 
@@ -428,7 +517,7 @@ export const useFontStore = defineStore('font', () => {
       if (lineBuffer) {
         let outputString = '';
 
-        if (type === FontFileType.Binary) {
+        if (type === FontFileType.BinaryText) {
           outputString = Array.from(lineBuffer)
             .map((byte) => byte.toString(16).padStart(2, '0').toUpperCase())
             .join(' ');
@@ -462,17 +551,80 @@ export const useFontStore = defineStore('font', () => {
 
     const link = document.createElement('a');
     link.href = url;
-    if (type === FontFileType.Binary) {
-      link.download = 'modified_font.txt';
-    } else if (type === FontFileType.CHeader) {
-      link.download = 'modified_font.h';
+    if (type === FontFileType.CHeader) {
+      link.download = `${downloadName}.h`;
     } else {
-      link.download = 'modified_font.txt';
+      link.download = `${downloadName}.txt`;
     }
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  }
+
+  async function drawGlyphsFromFile(file: File) {
+    if (!file) {
+      return;
+    }
+
+    const font: Font = opentype.parse(await file.arrayBuffer());
+
+    if (!font) {
+      return;
+    }
+
+    const response = await fetch('/base.xpwwf');
+    const data = await response.arrayBuffer();
+    await processFontFile(data, 'base.xpwwf');
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = CharacterGlyph.CHARACTER_WIDTH;
+    canvas.height = CharacterGlyph.DATA_LENGTH / CharacterGlyph.BYTES_PER_ROW;
+
+    for (const char of characters.value) {
+      if (!char.codepoint) {
+        // Invalid codepoint, data or so
+        continue;
+      }
+
+      const glyph = font.charToGlyph(char.character);
+      if (glyph.index === 0) {
+        // Missing glyph in font
+        continue;
+      }
+
+      const isSmallFont = char.index >= CharacterGlyph.SMALL_FONT_START_INDEX;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+
+      const fontSizePixels = isSmallFont ? canvas.height * 0.75 : canvas.height;
+      let path = glyph.getPath(0, canvas.height, fontSizePixels);
+      const bbox = path.getBoundingBox();
+      const glyphWidth = bbox.x2 - bbox.x1;
+      const glyphHeight = bbox.y2 - bbox.y1;
+      const xOffset = (canvas.width - glyphWidth) / 2 - bbox.x1;
+      const yOffsetCentered = (canvas.height - glyphHeight) / 2 - bbox.y1; // yOffset is now adjusted to center the glyph vertically
+      //const yOffsetTop = -bbox.y1; // Align to top
+      const yOffsetBottom = canvas.height - glyphHeight - bbox.y1;
+      path = glyph.getPath(xOffset, canvas.height + (isSmallFont ? yOffsetBottom : yOffsetCentered), fontSizePixels);
+      path.draw(ctx);
+
+      // Commit the pixel data to the character
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const pixelIndex = (y * canvas.width + x) * 4;
+          const alpha = pixels.data[pixelIndex + 3] ?? 0;
+          char.setPixel(x, y, alpha > 128);
+        }
+      }
+
+      char.commitOriginalData();
+    }
+
+    dataVersion.value++;
+    filename.value = file.name.replace(/\.[^/.]+$/, '');
   }
 
   return {
@@ -482,6 +634,7 @@ export const useFontStore = defineStore('font', () => {
     selectedCharacter,
     characters,
     previewScale,
-    dataVersion
+    dataVersion,
+    drawGlyphsFromFile
   };
 });

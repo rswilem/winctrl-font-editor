@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { Buffer } from 'buffer';
+
 const fontStore = useFontStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
-const previewText = ref('INIT REF');
+const previewText = ref('');
 const previewSpacing = ref(1);
 const showGrid = ref(true);
 const showSmallFont = ref(false);
@@ -54,6 +56,25 @@ function handleKeydown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
     e.preventDefault();
     pasteCharacterData();
+  }
+
+  // Check for Ctrl+Z (or Cmd+Z on Mac)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault();
+    // fontStore.selectedCharacter?.undoLastChange();
+    // drawCharacter();
+  }
+
+  // Check for Ctrl+G (or Cmd+G on Mac)
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+    e.preventDefault();
+    let requestedIndex: string | number | null = prompt('Enter character index to go to:');
+    if (requestedIndex) {
+      requestedIndex = Number(requestedIndex);
+      if (!isNaN(requestedIndex)) {
+        fontStore.selectedCharacter = fontStore.characters.find((c) => c.index === requestedIndex) || null;
+      }
+    }
   }
 }
 
@@ -386,11 +407,32 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-if="fontStore.selectedCharacter" class="flex gap-8 p-4 text-white">
-      <div class="flex flex-col gap-2">
+    <div v-if="fontStore.selectedCharacter" class="flex flex-col gap-8 p-4 text-white">
+      <div class="flex gap-4">
+        <div class="flex gap-2">
+          <input
+            type="text"
+            v-model="previewText"
+            placeholder="Preview text"
+            class="border border-gray-500 bg-black px-2 py-1 text-white hover:outline-none focus:border-blue-500 focus:outline-none"
+          />
+
+          <div class="flex flex-col text-xs">
+            <span>Preview spacing</span>
+            <input
+              type="range"
+              v-model.number="previewSpacing"
+              min="-20"
+              max="20"
+              class="w-full"
+              placeholder="Spacing"
+            />
+          </div>
+        </div>
+
         <div class="flex items-center gap-2">
           <input v-model="showGrid" type="checkbox" name="showGrid" id="showGrid" @change="drawCharacter()" />
-          <label for="showGrid">Show grid</label>
+          <label for="showGrid">Show pixel grid</label>
         </div>
 
         <div class="flex items-center gap-2">
@@ -401,18 +443,7 @@ onUnmounted(() => {
             id="showSmallFont"
             @change="drawCharacter()"
           />
-          <label for="showGrid">Smaller font</label>
-        </div>
-
-        <input
-          type="text"
-          v-model="previewText"
-          placeholder="Preview text"
-          class="rounded-lg border border-gray-500 bg-black px-2 py-1 text-white"
-        />
-
-        <div class="rounded-lg border border-gray-500 bg-white">
-          <input type="range" v-model.number="previewSpacing" min="-20" max="20" class="w-full" placeholder="Spacing" />
+          <label for="showSmallFont">Smaller font</label>
         </div>
 
         <Button @click="toggleAllPixels()">Toggle all pixels</Button>
