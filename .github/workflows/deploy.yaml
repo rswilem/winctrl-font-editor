@@ -16,6 +16,8 @@ jobs:
           node-version: '25'
       - run: npm install
       - run: npx nuxt build --preset github_pages
+        env:
+          NUXT_APP_BASE_URL: '/winctrl-font-editor/'
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
