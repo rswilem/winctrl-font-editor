@@ -31,7 +31,7 @@ export default defineNuxtConfig({
             'Edit and create custom fonts for the WINCTRL X-Plane plugin with this easy-to-use web-based font editor.'
         }
       ],
-      link: [{ rel: 'icon', type: 'image/x-icon' as any, href: '/favicon.ico' }]
+      link: [{ rel: 'icon', type: 'image/x-icon' as any, href: `${process.env.NUXT_APP_BASE_URL || '/'}favicon.ico` }]
     }
   },
 
@@ -42,7 +42,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       pluginName: 'WINCTRL X-Plane plugin',
-      pluginUrl: 'https://github.com/rswilem/winwing-xplane-plugin#winwing-plugin-for-x-plane'
+      pluginUrl: 'https://github.com/rswilem/winwing-xplane-plugin#winwing-plugin-for-x-plane',
+      baseUrl: process.env.NUXT_APP_BASE_URL || '/'
     }
   },
   vite: {

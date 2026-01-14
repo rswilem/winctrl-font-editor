@@ -573,7 +573,8 @@ export const useFontStore = defineStore('font', () => {
       return;
     }
 
-    const response = await fetch('/base.xpwwf');
+    const runtimeConfig = useRuntimeConfig();
+    const response = await fetch(`${runtimeConfig.public.baseUrl}base.xpwwf`);
     const data = await response.arrayBuffer();
     await processFontFile(data, 'base.xpwwf');
 
