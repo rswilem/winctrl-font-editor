@@ -42,7 +42,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       pluginName: 'WINCTRL X-Plane plugin',
-      pluginUrl: 'https://github.com/rswilem/winwing-xplane-plugin#winwing-plugin-for-x-plane',
+      pluginUrl: 'https://github.com/rswilem/wintrl-xplane-plugin#wintrl-plugin-for-x-plane',
       baseUrl: process.env.NUXT_APP_BASE_URL || '/'
     }
   },

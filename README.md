@@ -1,6 +1,6 @@
 # WINCTRL Font Editor
 
-A modern, web-based font editor for creating and customizing fonts for the [WINCTRL X-Plane plugin](https://github.com/rswilem/winwing-xplane-plugin). Designed to work seamlessly with the MCDU (Multi-Control Display Unit) and PFP (Panel Function Panel) management computers.
+A modern, web-based font editor for creating and customizing fonts for the [WINCTRL X-Plane plugin](https://github.com/rswilem/wintrl-xplane-plugin). Designed to work seamlessly with the MCDU (Multi-Control Display Unit) and PFP (Panel Function Panel) management computers.
 
 ## Features
 
@@ -50,7 +50,7 @@ A modern, web-based font editor for creating and customizing fonts for the [WINC
 
 ## Related Projects
 
-- [WINCTRL X-Plane Plugin](https://github.com/rswilem/winwing-xplane-plugin) - The FMC plugin that uses these custom fonts
+- [WINCTRL X-Plane Plugin](https://github.com/rswilem/wintrl-xplane-plugin) - The FMC plugin that uses these custom fonts
 
 ## License
 
