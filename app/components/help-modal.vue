@@ -119,15 +119,15 @@ const emit = defineEmits<{
         <h2 class="text-primary-700 mb-4 text-xl font-bold">Installation in X-Plane</h2>
         <div class="space-y-3 text-gray-700">
           <p><strong>1. Locate the Fonts Folder:</strong></p>
-          <p class="ml-4 rounded bg-gray-100 p-3 font-mono">X-Plane root directory/Resources/plugins/winwing/fonts/</p>
+          <p class="ml-4 rounded bg-gray-100 p-3 font-mono">X-Plane root directory/Resources/plugins/winctrl/fonts/</p>
           <p>
             <strong>2. Place Your Font:</strong> Copy your downloaded
             <code class="rounded bg-gray-100 px-2 py-1">.xpwwf</code> file into the fonts folder above.
           </p>
           <p><strong>3. Select in X-Plane:</strong></p>
           <ol class="ml-4 list-inside list-decimal space-y-1">
-            <li>Open X-Plane and load an aircraft with Winwing FMC</li>
-            <li>Navigate to: <strong>Plugins > Winwing > FMC > Display font</strong></li>
+            <li>Open X-Plane and load an aircraft with WINCTRL FMC</li>
+            <li>Navigate to: <strong>Plugins > WINCTRL > FMC > Display font</strong></li>
             <li>Select your custom font from the list</li>
             <li>The font will load immediately and persist across sessions</li>
           </ol>
@@ -146,7 +146,7 @@ const emit = defineEmits<{
           </div>
           <div class="border-primary-500 border-l-4 pl-4">
             <p>
-              <strong>No custom font:</strong> Reverts to the default font included with the WinWing FMC hardware. Note:
+              <strong>No custom font:</strong> Reverts to the default font included with the WINCTRL FMC hardware. Note:
               Requires device reconnect to take effect.
             </p>
           </div>

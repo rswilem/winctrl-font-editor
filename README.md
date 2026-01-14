@@ -1,6 +1,6 @@
-# Winwing Font Editor
+# WINCTRL Font Editor
 
-A modern, web-based font editor for creating and customizing fonts for the [Winwing / WINCTRL X-Plane plugin](https://github.com/rswilem/winwing-xplane-plugin). Designed to work seamlessly with the MCDU (Multi-Control Display Unit) and PFP (Panel Function Panel) management computers.
+A modern, web-based font editor for creating and customizing fonts for the [WINCTRL X-Plane plugin](https://github.com/rswilem/winwing-xplane-plugin). Designed to work seamlessly with the MCDU (Multi-Control Display Unit) and PFP (Panel Function Panel) management computers.
 
 ## Features
 
@@ -13,12 +13,12 @@ A modern, web-based font editor for creating and customizing fonts for the [Winw
 
 ## Quick Start
 
-1. Visit the [Winwing Font Editor](https://github.com/rswilem/winwing-font-editor)
+1. Visit the [WINCTRL Font Editor](https://github.com/rswilem/winctrl-font-editor)
 2. Click "Load font file" and select your font (TTF, OTF, or existing XPWWF)
 3. Edit characters by clicking pixels in the editor
 4. Click "Save font file" to download your custom `.xpwwf` file
-5. Place the file in `X-Plane/Resources/plugins/winwing/fonts/`
-6. Open X-Plane and select your font via `Plugins > Winwing > FMC > Display font`
+5. Place the file in `X-Plane/Resources/plugins/winctrl/fonts/`
+6. Open X-Plane and select your font via `Plugins > WINCTRL > FMC > Display font`
 
 ## Installation in X-Plane
 
@@ -30,13 +30,13 @@ A modern, web-based font editor for creating and customizing fonts for the [Winw
 ### Step 2: Install the Font File
 
 1. Locate your X-Plane root directory
-2. Navigate to `Resources/plugins/winwing/fonts/`
+2. Navigate to `Resources/plugins/winctrl/fonts/`
 3. Place your `.xpwwf` file in this directory
 
 ### Step 3: Select in X-Plane
 
-1. Open X-Plane and load an aircraft with the Winwing FMC
-2. Go to `Plugins > Winwing > FMC > Display font`
+1. Open X-Plane and load an aircraft with the WINCTRL FMC
+2. Go to `Plugins > WINCTRL > FMC > Display font`
 3. Select your custom font from the list
 4. The font loads immediately and persists across sessions
 
@@ -50,8 +50,8 @@ A modern, web-based font editor for creating and customizing fonts for the [Winw
 
 ## Related Projects
 
-- [Winwing / WINCTRL X-Plane Plugin](https://github.com/rswilem/winwing-xplane-plugin) - The FMC plugin that uses these custom fonts
+- [WINCTRL X-Plane Plugin](https://github.com/rswilem/winwing-xplane-plugin) - The FMC plugin that uses these custom fonts
 
 ## License
 
-Use of this editor is subject to the terms of the Winwing X-Plane plugin. All trademarks, logos, and brand names are the property of their respective owners.
+Use of this editor is subject to the terms of the WINCTRL X-Plane plugin. All trademarks, logos, and brand names are the property of their respective owners.

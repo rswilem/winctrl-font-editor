@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <component
     :is="as || 'button'"
-    class="block cursor-pointer font-bold text-white select-none"
+    class="block cursor-pointer border-t border-white font-bold text-white shadow-md transition-colors duration-200 select-none"
     :class="{
       'bg-primary-500 hover:bg-primary-700': primary,
       'bg-gray-700 hover:bg-gray-700': !primary,
