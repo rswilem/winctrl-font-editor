@@ -165,8 +165,8 @@ export class CharacterGlyph {
   }
 
   commitOriginalData() {
-    this.originalData = Buffer.from(this.data);
-    this.modified = false;
+    // this.originalData = Buffer.from(this.data);
+    // this.modified = false;
   }
 }
 
